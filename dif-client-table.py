@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 #   dif-client-table.py
 #

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 #   radio-stats-drop.py
 #

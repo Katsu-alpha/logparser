@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 #   dif-radio-stat.py
 #
