@@ -11,6 +11,8 @@
 import re
 import argparse
 
+end_pat = r' radio 1 advanced$'
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
@@ -34,11 +36,15 @@ if __name__ == '__main__':
         txtime = None
         txbcmc = None
         for l in lines:
-            if l.startswith('Tx Time Data Transmitted'):
+            l = l.rstrip()
+            if re.search(end_pat, l):
+                break
+
+            if l.startswith('Tx Time Data Transmitted  '):
                 m = re.search(r'\d+', l)
                 txtime = int(m.group(0)) if m else None
                 continue
-            if l.startswith('Tx Time BC/MC Data'):
+            if l.startswith('Tx Time BC/MC Data  '):
                 m = re.search(r'\d+', l)
                 txbcmc = int(m.group(0)) if m else None
 

@@ -12,6 +12,8 @@
 import re
 import argparse
 
+end_pat = r' radio 1 advanced$'
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
@@ -33,6 +35,10 @@ if __name__ == '__main__':
         s_txretr = 0
         s_tx = 0
         for l in lines:
+            l = l.rstrip()
+            if re.search(end_pat, l):
+                break
+
             if l.startswith('Tx Data Transmitted Retried'):
                 m = re.search(r'\d+', l)
                 if m:
