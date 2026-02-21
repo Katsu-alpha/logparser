@@ -53,6 +53,9 @@ if __name__ == '__main__':
 
         d_txtime = txtime - s_txtime
         d_txbcmc = txbcmc - s_txbcmc
-        bcmc_rate = (d_txbcmc/ d_txtime) * 100
+        if d_txtime == 0:
+            bcmc_rate = 0
+        else:
+            bcmc_rate = (d_txbcmc/ d_txtime) * 100
         print(f"{fn} {bcmc_rate:.2f}% ({d_txbcmc}/{d_txtime})")
 
