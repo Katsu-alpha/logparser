@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=f"Calculate retry rates in 'show ap debug radio-stats'")
     parser.add_argument('infile', help="Input files(s) containing 'show ap debug radio-stats' output", type=str, nargs='+')
+    parser.add_argument('--excludelast', '-e', help='Exclude last n values', type=int, default=0)
     args = parser.parse_args()
 
     #
@@ -32,8 +33,8 @@ if __name__ == '__main__':
             f = open(fn, encoding='mac_roman')
             lines = f.readlines()
         f.close()
-        s_txretr = 0
-        s_tx = 0
+        txretr_values = []
+        tx_values = []
         for l in lines:
             l = l.rstrip()
             if re.search(end_pat, l):
@@ -42,21 +43,25 @@ if __name__ == '__main__':
             if l.startswith('Tx Data Transmitted Retried'):
                 m = re.search(r'\d+', l)
                 if m:
-                    txretr = int(m.group(0)) 
-                    e_txretr = txretr
-                    if s_txretr == 0:
-                        s_txretr = txretr
+                    txretr_values.append(int(m.group(0)))
                 continue
             if l.startswith('Tx Data Transmitted'):
                 m = re.search(r'\d+', l)
                 if m:
-                    tx = int(m.group(0)) 
-                    e_tx = tx
-                    if s_tx == 0:
-                        s_tx = tx
+                    tx_values.append(int(m.group(0)))
 
-        d_txretr = e_txretr - s_txretr
-        d_tx = e_tx - s_tx
-        retry_rate = (d_txretr/ d_tx) * 100
-        print(f"{fn} {retry_rate:.2f}% ({d_txretr}/{d_tx})")
+        if args.excludelast > 0:
+            txretr_values = txretr_values[:-args.excludelast] if len(txretr_values) > args.excludelast else []
+            tx_values = tx_values[:-args.excludelast] if len(tx_values) > args.excludelast else []
+
+        if txretr_values and tx_values:
+            d_txretr = txretr_values[-1] - txretr_values[0]
+            d_tx = tx_values[-1] - tx_values[0]
+            if d_tx > 0:
+                retry_rate = (d_txretr / d_tx) * 100
+                print(f"{fn} {retry_rate:.2f}% ({d_txretr}/{d_tx})")
+            else:
+                print(f"{fn} N/A (tx delta is 0)")
+        else:
+            print(f"{fn} N/A (not enough data)")
         #break

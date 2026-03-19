@@ -7,20 +7,21 @@
 
 import sys
 import re
-
+import argparse
 import fileinput
 
-if len(sys.argv) < 2:
-    print("Usage: peak.py <param> <input-fil(s)>")
-    sys.exit(1)
 
-p = sys.argv[1]
-for fn in sys.argv[2:]:
-    min_val = 0xFFFFFFFF
-    max_val = 0
-    sum_val = 0
-    num = 0
-    with open(fn, encoding='utf-8') as f:
+parser = argparse.ArgumentParser(
+    description="Calculate min/max/avg for the specified parameter.")
+parser.add_argument('pattern', help="Parameter to parse", type=str)
+parser.add_argument('files', help="Log files", type=str, nargs='+')
+parser.add_argument('--excludelast', '-e', help='Exclude last n values', type=int, default=0)
+args = parser.parse_args()
+
+p = args.pattern
+for fn in args.files:
+    values = []
+    with open(fn, encoding='mac_roman') as f:
         lines = f.readlines()
 
     for l in lines:
@@ -29,12 +30,19 @@ for fn in sys.argv[2:]:
         m = re.search(r'\d+$', l)
         if not m:
             continue
+        values.append(int(m.group(0)))
 
-        num += 1
-        val = int(m.group(0))
-        sum_val += val
-        min_val = min(min_val, val)
-        max_val = max(max_val, val)
+    if args.excludelast > 0:
+        values = values[:-args.excludelast] if len(values) > args.excludelast else []
 
-    print(f'{fn:<25}: min={min_val:<5} max={max_val:<5} avg={sum_val / num if num > 0 else 0}')
+    if values:
+        min_val = min(values)
+        max_val = max(values)
+        avg_val = sum(values) / len(values)
+    else:
+        min_val = 0
+        max_val = 0
+        avg_val = 0
+
+    print(f'{fn:<25}: min={min_val:<5} max={max_val:<5} avg={avg_val}')
 
