@@ -6,7 +6,8 @@
 #   - Tx Data Transmitted
 #   - Tx Data Transmitted Retried
 #
-
+#   show tech-support が含まれている場合を考慮し、"radio 1 advanced" にマッチしたら終了
+#
 
 import re
 import argparse
@@ -31,6 +32,7 @@ if __name__ == '__main__':
             f = open(fn, encoding='mac_roman')
             lines = f.readlines()
         f.close()
+        tx = txretr = 0
         pre_txretr = pre_tx = None
         for l in lines:
             l = l.rstrip()
@@ -45,13 +47,16 @@ if __name__ == '__main__':
                 m = re.search(r'\d+', l)
                 tx = int(m.group(0))
 
-                if tx > 0 and txretr is not None and tx > 0:
+                if tx > 0 and txretr > 0:
                     if pre_txretr is None:
                         pre_txretr = txretr
                         pre_tx = tx
                         continue
                     d_txretr = txretr - pre_txretr
                     d_tx = tx - pre_tx
+                    if d_tx < 0 or d_txretr < 0:
+                        print(f"negative delta ({d_txretr}/{d_tx}), skip")
+                        continue
                     pre_txretr = txretr
                     pre_tx = tx
                     retry_rate = (d_txretr/ d_tx) * 100 if d_tx > 0 else 0
